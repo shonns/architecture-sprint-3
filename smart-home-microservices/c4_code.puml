@@ -1,0 +1,79 @@
+@startuml
+!include <C4/C4_Component>
+
+title Уровень кода (C4): Пример ядра системы управления освещением
+
+class LightingController {
+    + turnOn(room: string)
+    + turnOff(room: string)
+    + setBrightness(room: string, level: int)
+    + applyScene(scene: SceneType)
+    + handleMotionEvent(sensor: MotionSensor)
+}
+
+class BulbCommunicator {
+    - mqttClient: MQTT.Client
+    + sendCommand(bulb: BulbId, command: LightCommand) : bool
+    + subscribeToBulbUpdates()
+}
+
+class LightingScheduler {
+    + addDailySchedule(time: Time, action: LightAction)
+    + checkSchedules() : LightCommand[]
+    + overrideSchedule(override: TemporaryOverride)
+}
+
+class LightCommand {
+    + bulbId: string
+    + power: bool
+    + brightness: int (0-100)
+    + colorTemp: int (2700-6500K)
+}
+
+class MotionSensor {
+    + sensorId: string
+    + location: string
+    + lastActivation: DateTime
+    + isActive() : bool
+}
+
+enum SceneType {
+    MORNING
+    DAYLIGHT
+    EVENING
+    NIGHT_LIGHT
+    PARTY
+    READING
+}
+
+enum LightAction {
+    TURN_ON
+    TURN_OFF
+    DIM_50
+    WARM_WHITE
+}
+
+' Связи
+LightingController --> BulbCommunicator : "Отправка команд"
+LightingController --> LightingScheduler : "Проверка расписания"
+LightingController --> LightCommand : "Формирование"
+LightingController --> MotionSensor : "Обработка событий"
+BulbCommunicator --> LightCommand : "Отправка на устройства"
+LightingScheduler --> LightCommand : "Генерация по расписанию"
+LightingController --> SceneType : "Применение сценариев"
+
+note top of LightingController
+    Основные функции:
+    - Управление по комнатам
+    - Реакция на датчики движения
+    - Применение готовых сценариев
+end note
+
+note right of LightCommand
+    Поддерживаемые параметры:
+    - Яркость: 0-100%
+    - Цветовая температура:
+      2700K (теплый) - 6500K (холодный)
+end note
+
+@enduml

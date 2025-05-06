@@ -1,0 +1,76 @@
+@startuml
+!include <C4/C4_Container>
+
+left to right direction
+
+title Диаграмма контейнеров C2: Экосистема "Теплый дом"
+
+Person(user, "Пользователь", "Владелец умного дома")
+
+System_Boundary(ecosystem, "Экосистема 'Теплый дом'") {
+    Container(web_app, "Web-интерфейс", "React", "Единая точка управления")
+    Container(mobile_app, "Мобильное приложение", "Swift\Kotlin", "Единая точка управления")
+    Container(api_gw, "API Gateway", "Kong", "Маршрутизация запросов")
+
+    ' 1. Домен: Управление и мониторинг отоплением
+    System_Boundary(heating, "Домен: Управление и мониторинг отоплением") {
+        Container(heating_service, "Сервис отопления", "Go", "Контроль температуры\nУправление котлом\nАнализ энергопотребления")
+        ContainerDb(heating_db, "TSDB", "TimescaleDB", "История показаний\nНастройки профилей")
+    }
+
+    ' 2. Домен: Управление светом
+    System_Boundary(lighting, "Домен: Управление светом") {
+        Container(lighting_service, "Сервис освещения", "Python", "Управление лампами\nСценарии освещения\nРасписания")
+        ContainerDb(lighting_db, "Состояния", "MongoDB", "Текущий статус\nШаблоны освещения")
+    }
+
+    ' 3. Домен: Видеонаблюдение и ворота
+    System_Boundary(surveillance, "Домен: Видеонаблюдение и ворота") {
+        Container(surveillance_service, "Сервис безопасности", "Java", "Потоковое видео\nДатчики движения\nУправление воротами")
+        ContainerDb(surveillance_db, "Журнал событий", "PostgreSQL", "Записи с камер\nИстория доступа")
+    }
+
+    ' 4. Домен: Данные пользователей
+    System_Boundary(users, "Домен: Данные пользователей") {
+        Container(user_service, "User Service", "Node.js", "Профили\nАутентификация\nЛимиты устройств")
+        ContainerDb(user_db, "User DB", "PostgreSQL", "Персональные данные\nПривязанные устройства")
+    }
+
+    ' 5. Домен: Платежи
+    System_Boundary(payments, "Домен: Платежи") {
+        Container(payment_gateway, "Payment Gateway", "C#", "Обработка транзакций\nУправление подписками")
+        ContainerDb(payment_db, "Payment Cache", "Redis", "Статусы платежей\nИстория операций")
+    }
+}
+
+System_Ext(payment_provider, "Платежный провайдер", "СБП \n SberPay \n и т.п.")
+
+' Основные взаимодействия
+user --> web_app : "Управление через\nWeb"
+user --> mobile_app : "Управление через\nMobileApp"
+web_app --> api_gw : "REST"
+mobile_app --> api_gw : "REST"
+
+api_gw --> heating_service : "1. Установка температуры\n2. Запрос статистики"
+heating_service --> heating_db : "Запись телеметрии"
+
+api_gw --> lighting_service : "1. Включение света\n2. Смена сценария"
+lighting_service --> lighting_db : "Обновление статуса"
+
+api_gw --> surveillance_service : "1. Просмотр камер\n2. Открытие ворот"
+surveillance_service --> surveillance_db : "Архивация видео"
+
+api_gw --> user_service : "1. Регистрация\n2. Настройки"
+user_service --> user_db : "Хранение профилей"
+
+api_gw --> payment_gateway : "Обработка платежа"
+payment_gateway --> payment_db : "Кеширование данных"
+
+' Кросс-доменные связи
+payment_gateway --> payment_provider : "Выполнение транзакций\n(PCI DSS)"
+surveillance_service .u.> payment_gateway : "Проверка активной подписки"
+user_service .u.> heating_service : "Проверка лимита устройств"
+user_service .u.> lighting_service : "Верификация доступа"
+payment_gateway .u.> user_service : "Обновление статуса подписки"
+
+@enduml
