@@ -1,0 +1,1057 @@
+openapi: 3.0.0
+info:
+  title: "Теплый дом v2 - Пример API"
+  version: 3.0.0
+  description: |-
+    API для управления экосистемой "Теплый дом".
+    Включает небольшой набор методов для интеграции.
+  contact:
+    email: api@warmhome.example
+
+servers:
+  - url: https://api.warmhome.example/v2
+
+tags:
+  - name: Authentication
+    description: Регистрация и аутентификация
+  - name: User Management
+    description: Управление пользователями
+  - name: House Management
+    description: Управление домами и помещениями
+  - name: Device Management
+    description: Управление устройствами
+  - name: Heating Control
+    description: Управление отоплением
+  - name: Lighting Control
+    description: Управление освещением
+  - name: CCTV
+    description: Системы видеонаблюдения
+  - name: Scenarios
+    description: Управление сценариями
+  - name: Analytics
+    description: Аналитика и статистика
+  - name: Billing
+    description: Платежи и подписки
+
+paths:
+  # ==================== Аутентификация ====================
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Регистрация нового пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Вход в систему
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  # ==================== Управление пользователями ====================
+  /users/{user_id}:
+    get:
+      tags: [User Management]
+      summary: Получить информацию о пользователе
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: Информация о пользователе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+    put:
+      tags: [User Management]
+      summary: Обновить информацию пользователя
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: Информация обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # ==================== Управление домами ====================
+  /houses:
+    get:
+      tags: [House Management]
+      summary: Получить список домов
+      responses:
+        '200':
+          description: Список домов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/House'
+
+    post:
+      tags: [House Management]
+      summary: Создать новый дом
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HouseCreate'
+      responses:
+        '201':
+          description: Дом создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/House'
+
+  /houses/{house_id}:
+    get:
+      tags: [House Management]
+      summary: Получить информацию о доме
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      responses:
+        '200':
+          description: Информация о доме
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HouseDetails'
+
+    put:
+      tags: [House Management]
+      summary: Обновить информацию о доме
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HouseUpdate'
+      responses:
+        '200':
+          description: Информация обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/House'
+
+    delete:
+      tags: [House Management]
+      summary: Удалить дом
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      responses:
+        '204':
+          description: Дом удален
+
+  # ==================== Управление устройствами ====================
+  /houses/{house_id}/devices:
+    get:
+      tags: [Device Management]
+      summary: Получить список устройств
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      responses:
+        '200':
+          description: Список устройств
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+
+    post:
+      tags: [Device Management]
+      summary: Добавить новое устройство
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceCreate'
+      responses:
+        '201':
+          description: Устройство добавлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+
+  /houses/{house_id}/devices/{device_id}:
+    get:
+      tags: [Device Management]
+      summary: Получить информацию об устройстве
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+        - $ref: '#/components/parameters/deviceId'
+      responses:
+        '200':
+          description: Информация об устройстве
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDetails'
+
+    put:
+      tags: [Device Management]
+      summary: Обновить информацию об устройстве
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+        - $ref: '#/components/parameters/deviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceUpdate'
+      responses:
+        '200':
+          description: Информация обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+
+    delete:
+      tags: [Device Management]
+      summary: Удалить устройство
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+        - $ref: '#/components/parameters/deviceId'
+      responses:
+        '204':
+          description: Устройство удалено
+
+  # ==================== Управление отоплением ====================
+  /houses/{house_id}/heating:
+    get:
+      tags: [Heating Control]
+      summary: Получить текущее состояние отопления
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      responses:
+        '200':
+          description: Состояние отопления
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeatingStatus'
+
+    put:
+      tags: [Heating Control]
+      summary: Установить режим отопления
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeatingControl'
+      responses:
+        '200':
+          description: Режим установлен
+
+  /houses/{house_id}/heating/schedule:
+    get:
+      tags: [Heating Control]
+      summary: Получить расписание отопления
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      responses:
+        '200':
+          description: Расписание отопления
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeatingSchedule'
+
+    post:
+      tags: [Heating Control]
+      summary: Установить расписание отопления
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeatingScheduleUpdate'
+      responses:
+        '201':
+          description: Расписание установлено
+
+  # ==================== Управление освещением ====================
+  /houses/{house_id}/lighting:
+    get:
+      tags: [Lighting Control]
+      summary: Получить состояние освещения
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      responses:
+        '200':
+          description: Состояние освещения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LightingStatus'
+
+    put:
+      tags: [Lighting Control]
+      summary: Управление освещением
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LightingControl'
+      responses:
+        '200':
+          description: Команда выполнена
+
+  /houses/{house_id}/lighting/scenes:
+    get:
+      tags: [Lighting Control]
+      summary: Получить список сценариев освещения
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      responses:
+        '200':
+          description: Список сценариев
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LightingScene'
+
+    post:
+      tags: [Lighting Control]
+      summary: Создать сценарий освещения
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LightingSceneCreate'
+      responses:
+        '201':
+          description: Сценарий создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LightingScene'
+
+  /houses/{house_id}/lighting/scenes/{scene_id}:
+    put:
+      tags: [Lighting Control]
+      summary: Обновить сценарий освещения
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+        - $ref: '#/components/parameters/sceneId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LightingSceneUpdate'
+      responses:
+        '200':
+          description: Сценарий обновлен
+
+    delete:
+      tags: [Lighting Control]
+      summary: Удалить сценарий освещения
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+        - $ref: '#/components/parameters/sceneId'
+      responses:
+        '204':
+          description: Сценарий удален
+
+  # ==================== Системы безопасности ====================
+  /houses/{house_id}/cctv:
+    get:
+      tags: [CCTV]
+      summary: Получить состояние камер наблюдения
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      responses:
+        '200':
+          description: Состояние камер наблюдения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CCTVStatus'
+
+  /houses/{house_id}/cctv/add:
+    post:
+      tags: [CCTV]
+      summary: Добавить новую камеру наблюдения
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CCTV'
+      responses:
+        '200':
+          description: Камера наблюдения добавлена
+
+  /houses/{house_id}/cctv/{cctv_id}:
+    delete:
+      tags: [CCTV]
+      summary: Деактивировать камеру наблюдения
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CCTV'
+      responses:
+        '200':
+          description: Камера наблюдения деактивирована
+
+  # ==================== Управление сценариями ====================
+  /houses/{house_id}/scenarios:
+    get:
+      tags: [Scenarios]
+      summary: Получить список сценариев
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      responses:
+        '200':
+          description: Список сценариев
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Scenario'
+
+    post:
+      tags: [Scenarios]
+      summary: Создать сценарий
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScenarioCreate'
+      responses:
+        '201':
+          description: Сценарий создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+
+  # ==================== Аналитика ====================
+  /houses/{house_id}/analytics/energy:
+    get:
+      tags: [Analytics]
+      summary: Получить статистику энергопотребления
+      parameters:
+        - $ref: '#/components/parameters/houseId'
+        - $ref: '#/components/parameters/timeRange'
+      responses:
+        '200':
+          description: Статистика энергопотребления
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnergyAnalytics'
+
+  # ==================== Платежи и подписки ====================
+  /billing/subscriptions:
+    get:
+      tags: [Billing]
+      summary: Получить активные подписки
+      responses:
+        '200':
+          description: Список подписок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+
+    post:
+      tags: [Billing]
+      summary: Активировать подписку
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionCreate'
+      responses:
+        '201':
+          description: Подписка активирована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    userId:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Уникальный идентификатор пользователя
+
+    houseId:
+      name: house_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Уникальный идентификатор дома
+
+    deviceId:
+      name: device_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Уникальный идентификатор устройства
+
+    sceneId:
+      name: scene_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Уникальный идентификатор сценария
+
+    timeRange:
+      name: time_range
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [day, week, month, year]
+        default: week
+      description: Период для аналитики
+
+  schemas:
+    # Аутентификация
+    UserRegistration:
+      type: object
+      required: [email, password, name]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        name:
+          type: string
+
+    UserCredentials:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    # Пользователи
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    UserUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    # Дома
+    House:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    HouseCreate:
+      type: object
+      required: [name, address]
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        timezone:
+          type: string
+          default: "Europe/Moscow"
+
+    HouseDetails:
+      allOf:
+        - $ref: '#/components/schemas/House'
+        - type: object
+          properties:
+            rooms:
+              type: array
+              items:
+                $ref: '#/components/schemas/Room'
+
+    HouseUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        timezone:
+          type: string
+
+    Room:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        area:
+          type: number
+          minimum: 0
+
+    # Устройства
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+          enum: [thermostat, light, camera, sensor]
+        status:
+          type: string
+          enum: [online, offline, error]
+
+    DeviceCreate:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [thermostat, light, camera, sensor]
+        room_id:
+          type: string
+          format: uuid
+
+    DeviceDetails:
+      allOf:
+        - $ref: '#/components/schemas/Device'
+        - type: object
+          properties:
+            last_seen:
+              type: string
+              format: date-time
+            settings:
+              type: object
+
+    DeviceUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        room_id:
+          type: string
+          format: uuid
+
+    # Отопление
+    HeatingStatus:
+      type: object
+      properties:
+        current_temp:
+          type: number
+          format: float
+        target_temp:
+          type: number
+          format: float
+        mode:
+          type: string
+          enum: [auto, manual, eco, off]
+
+    HeatingControl:
+      type: object
+      properties:
+        target_temp:
+          type: number
+          format: float
+          minimum: 5
+          maximum: 35
+        mode:
+          type: string
+          enum: [auto, manual, eco, off]
+
+    HeatingSchedule:
+      type: object
+      properties:
+        schedule:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScheduleItem'
+
+    ScheduleItem:
+      type: object
+      properties:
+        time:
+          type: string
+          pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$'
+        temp:
+          type: number
+          minimum: 5
+          maximum: 35
+
+    HeatingScheduleUpdate:
+      type: object
+      required: [schedule]
+      properties:
+        schedule:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScheduleItem'
+
+    # Освещение
+    LightingStatus:
+      type: object
+      properties:
+        lights_on:
+          type: integer
+        total_lights:
+          type: integer
+        rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/LightingRoomStatus'
+
+    LightingRoomStatus:
+      type: object
+      properties:
+        room_id:
+          type: string
+          format: uuid
+        lights_on:
+          type: integer
+        total_lights:
+          type: integer
+
+    LightingControl:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [turn_on, turn_off, toggle]
+        room_id:
+          type: string
+          format: uuid
+        brightness:
+          type: integer
+          minimum: 0
+          maximum: 100
+
+    LightingScene:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/LightingAction'
+
+    LightingAction:
+      type: object
+      properties:
+        device_id:
+          type: string
+          format: uuid
+        brightness:
+          type: integer
+          minimum: 0
+          maximum: 100
+        state:
+          type: boolean
+
+    LightingSceneCreate:
+      type: object
+      required: [name, actions]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/LightingAction'
+
+    LightingSceneUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/LightingAction'
+
+    # Безопасность
+    CCTVStatus:
+      type: object
+      properties:
+        alarms_armed:
+          type: boolean
+        cameras_online:
+          type: integer
+        total_cameras:
+          type: integer
+        last_alert:
+          type: string
+          format: date-time
+
+    CCTV:
+      type: object
+      required: [action]
+      properties:
+        id:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum: [on, off]
+        code:
+          type: string
+          minLength: 4
+          maxLength: 6
+
+    # Сценарии
+    Scenario:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        triggers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScenarioTrigger'
+
+    ScenarioCreate:
+      type: object
+      required: [name, triggers, actions]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        triggers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScenarioTrigger'
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScenarioAction'
+
+    ScenarioTrigger:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [time, sensor, manual]
+        params:
+          type: object
+
+    ScenarioAction:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [heating, lighting, security]
+        params:
+          type: object
+
+    # Аналитика
+    EnergyAnalytics:
+      type: object
+      properties:
+        period:
+          type: string
+        total_consumption:
+          type: number
+        by_device:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceConsumption'
+
+    DeviceConsumption:
+      type: object
+      properties:
+        device_id:
+          type: string
+          format: uuid
+        device_name:
+          type: string
+        consumption:
+          type: number
+        percentage:
+          type: number
+
+    # Платежи
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        plan:
+          type: string
+        status:
+          type: string
+          enum: [active, expired, canceled]
+        valid_until:
+          type: string
+          format: date
+        auto_renew:
+          type: boolean
+
+    SubscriptionCreate:
+      type: object
+      required: [plan_id, payment_method]
+      properties:
+        plan_id:
+          type: string
+        payment_method:
+          type: string
+        auto_renew:
+          type: boolean
+          default: true
+
+    # Ошибки
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object

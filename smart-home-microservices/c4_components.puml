@@ -1,0 +1,47 @@
+@startuml
+!include <C4/C4_Component>
+
+left to right direction
+
+title Уровень компонентов (C3): Упрощенная версия (только освещение и отопление)
+
+Container(heating_service, "Сервис отопления", "Go") {
+    Component(heating_api, "API управления отоплением", "REST", "Прием команд:\n- Установка температуры\n- Выбор режима")
+    Component(temp_logic, "Логика отопления", "Go", "Автоматическое поддержание температуры\nУправление модулем отопления")
+    Component(boiler_adapter, "Адаптер отопления", "Go", "Подключение через:\nMQTT")
+    Component(energy_monitor, "Мониторинг энергии", "Python", "Сбор данных потребления")
+
+    Rel(heating_api, temp_logic, "Передает настройки", "REST")
+    Rel(temp_logic, boiler_adapter, "Команды модулю отопления", "JSON over HTTP")
+    Rel(boiler_adapter, temp_logic, "Текущая температура", "WebSocket")
+    Rel(boiler_adapter, energy_monitor, "Показания счетчиков", "HTTP")
+}
+
+Container(lighting_service, "Сервис освещения", "Python") {
+    Component(light_api, "API освещения", "REST", "Управление:\n- Включение/выключение\n- Яркость")
+    Component(schedules, "Расписания", "Python", "Автоматика по времени\n(утро/вечер/ночь)")
+    Component(bulb_adapter, "Адаптер ламп", "Python", "Поддержка Wi-Fi/MQTT")
+    Component(motion_sensor, "Датчики движения", "Python", "Интеграция с сенсорами")
+
+    Rel(light_api, schedules, "Настройка расписаний", "JSON")
+    Rel(schedules, bulb_adapter, "Команды лампам", "MQTT")
+    Rel(motion_sensor, schedules, "Обнаружение движения", "HTTP")
+}
+
+ContainerDb(heating_db, "База отопления", "PostgreSQL") {
+    Component(temp_history, "История температур", "SQL", "Хранение показаний\n(каждые 5-10 минут)")
+    Component(config_store, "Настройки", "SQL", "Профили отопления\nРасписания")
+}
+
+ContainerDb(lighting_db, "База освещения", "MongoDB") {
+    Component(devices_state, "Состояния", "NoSQL", "Текущий статус ламп\n(вкл/выкл/яркость)")
+    Component(scenarios, "Сценарии", "JSON", "Шаблоны освещения\n(кино/вечеринка/чтение)")
+}
+
+' Интеграции
+Rel(heating_service, heating_db, "Сохранение данных", "SQL")
+Rel(lighting_service, lighting_db, "Обновление статусов", "REST")
+Rel(energy_monitor, heating_db, "Анализ истории", "Grafana")
+Rel(bulb_adapter, devices_state, "Синхронизация", "Каждые 30 сек")
+
+@enduml

@@ -1,0 +1,71 @@
+@startuml
+!include <C4/C4_Context>
+
+title ER-диаграмма: Поверхностная модель сущностей и связей
+
+entity "Объект недвижимости" as realtyobject {
+  * realtyobject_id : UUID <<PK>>
+  --
+  * address : varchar(255)
+  * area_sqm : decimal(6,2)
+  * timezone : varchar(50)
+  * created_at : timestamp
+}
+
+entity "Пользователи" as users {
+  * user_id : UUID <<PK>>
+  --
+  * realtyobject_id : UUID <<FK>>
+  * email : varchar(255)
+  * password_hash : varchar(255)
+  * full_name : varchar(100)
+  * role : enum('owner','member','guest')
+  * created_at : timestamp
+}
+
+entity "Устройства" as devices {
+  * device_id : UUID <<PK>>
+  --
+  * realtyobject_id : UUID <<FK>>
+  * type : enum('heatModule','bulb','camera', 'motionSensor', 'smartSwitcher')
+  * model : varchar(100)
+  * location : varchar(100)
+  * installation_date : date
+}
+
+' Остальные сущности (связи обновлены)
+entity "Датчики" as sensors {
+  * sensor_id : UUID <<PK>>
+  --
+  * device_id : UUID <<FK>>
+  * current_value : decimal(5,2)
+  * battery_level : smallint
+}
+
+entity "Платежи" as payments {
+  * payment_id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * realtyobject_id : UUID <<FK>>
+  * amount : decimal(10,2)
+  * service_type : enum('premium','standard','basic')
+}
+
+' Обновленные связи
+realtyobject ||--o{ users : "Владеет"
+realtyobject ||--o{ devices : "Содержит"
+users }o--|| realtyobject : "Проживает"
+devices }|--|| realtyobject : "Установлено в"
+
+' Остальные связи (как в предыдущей версии)
+devices ||--|| sensors : "Включает"
+users ||--o{ payments : "Оплачивает"
+
+' Пример новых атрибутов
+note right of realtyobject
+  Дополнительные параметры:
+  - Тип объекта недвижимости (квартира/апартаменты/частный дом)
+  - Детализация местоположения (Страна/Город/Улица/Дом)
+end note
+
+@enduml
